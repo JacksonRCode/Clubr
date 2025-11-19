@@ -1,4 +1,5 @@
 fastapi
+mangum
 uvicorn[standard]
 python-dotenv
 sqlalchemy
