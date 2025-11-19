@@ -13,3 +13,4 @@ __pycache__
 .env.test
 .env.production
 .vercel
+node_modules/
