@@ -63,4 +63,56 @@ def check_existing_user(email: str, password: str):
     finally:
         db.close()
 
+# Database function for creating a tag
+def create_tags(tagname: str):
+
+    db = SessionLocal()
+    
+    new_tag = Tags(tagname=tagname)
+
+    try:
+        # Add a new user
+        db.add(new_tag)
+        db.commit()
+
+        # Refresh object to get its ID
+        db.refresh(new_tag)
+
+        print(f"New tag has been successfully added.")
+        return new_tag
+    
+    except Exception as e:
+        # Rollback in case of error
+        db.rollback()
+        print(f"Error has occured when trying to add new tag: {e}")
+    
+    finally:
+        db.close()
+
+# Database function for creating a club
+def create_clubs(clubname: str, description: str):
+
+    db = SessionLocal()
+    
+    new_club = Clubs(clubname=clubname, description=description)
+
+    try:
+        # Add a new user
+        db.add(new_club)
+        db.commit()
+
+        # Refresh object to get its ID
+        db.refresh(new_club)
+
+        print(f"New club has been successfully added.")
+        return new_club
+    
+    except Exception as e:
+        # Rollback in case of error
+        db.rollback()
+        print(f"Error has occured when trying to add new club: {e}")
+    
+    finally:
+        db.close()
+
 
