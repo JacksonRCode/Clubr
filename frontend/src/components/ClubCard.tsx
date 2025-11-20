@@ -42,7 +42,7 @@ export function ClubCard({ club, onClubClick, onFollowToggle }: ClubCardProps) {
         <Button
           variant={club.isFollowing ? 'outline' : 'default'}
           className="w-full"
-          onClick={(e) => {
+          onClick={(e: any) => {
             e.stopPropagation();
             onFollowToggle?.(club.id);
           }}

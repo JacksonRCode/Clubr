@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { LoginPage } from './components/LoginPage';
 import { InterestSelection } from './components/InterestSelection';
 import { Navigation } from './components/Navigation';
@@ -25,14 +25,14 @@ export default function App() {
   const [userInterests, setUserInterests] = useState<string[]>([]);
   const [posts, setPosts] = useState(mockPosts);
   const [events, setEvents] = useState(mockEvents);
-  
+
   // Admin mode state - for demo, user is admin of Queen's Journal and Badminton Team
   const [userAdminClubIds] = useState(['1', '2']); // IDs of clubs where user is admin
   const [currentAdminClub, setCurrentAdminClub] = useState<Club | null>(null);
 
   // Check if user is following any clubs
   const hasFollowingClubs = clubs.some(club => club.isFollowing);
-  
+
   // Get clubs where user is admin
   const adminClubs = clubs.filter(club => userAdminClubIds.includes(club.id));
 
@@ -84,7 +84,7 @@ export default function App() {
           : club
       )
     );
-    
+
     const club = clubs.find(c => c.id === clubId);
     if (club) {
       if (!club.isFollowing) {
@@ -127,7 +127,7 @@ export default function App() {
 
   const handleCreatePost = (content: string, image?: string) => {
     if (!currentAdminClub) return;
-    
+
     const newPost: Post = {
       id: `p${posts.length + 1}`,
       clubId: currentAdminClub.id,
@@ -138,26 +138,26 @@ export default function App() {
       createdAt: 'Just now',
       likes: 0
     };
-    
+
     setPosts([newPost, ...posts]);
   };
 
   const handleCreateEvent = (eventData: Omit<Event, 'id' | 'clubId' | 'clubName'>) => {
     if (!currentAdminClub) return;
-    
+
     const newEvent: Event = {
       id: `e${events.length + 1}`,
       clubId: currentAdminClub.id,
       clubName: currentAdminClub.name,
       ...eventData
     };
-    
+
     setEvents([...events, newEvent]);
   };
 
   const handleUpdateClub = (updates: Partial<Club>) => {
     if (!currentAdminClub) return;
-    
+
     setClubs(prevClubs =>
       prevClubs.map(club =>
         club.id === currentAdminClub.id
@@ -165,7 +165,7 @@ export default function App() {
           : club
       )
     );
-    
+
     setCurrentAdminClub(prev => prev ? { ...prev, ...updates } : null);
     setSelectedClub(prev => prev ? { ...prev, ...updates } : null);
   };
