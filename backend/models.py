@@ -6,22 +6,22 @@ from database import Base
 class Users(Base):
     __tablename__ = "users"
 
-    userid = Column(Integer, primary_key=True, index=True)
+    userid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     email = Column(String(255), unique=True, index=True)
-    password = Column(String(255), index=True)
+    password = Column(String(255))
     name = Column(String(255))
     profiledescription = Column(Text)
 
 class Tags(Base):
     __tablename__ = "tags"
 
-    tagid = Column(Integer, primary_key=True, index=True)
+    tagid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     tagname = Column(String(255), unique=True, index=True)
 
 class Clubs(Base):
     __tablename__ = "clubs"
 
-    clubid = Column(Integer, primary_key=True, index=True)
+    clubid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     clubname = Column(String(255), unique=True, index=True)
     description = Column(Text)
 
@@ -42,37 +42,37 @@ class ClubMembership(Base):
 
     userid = Column(Integer, ForeignKey("users.userid"), primary_key=True)
     clubid = Column(Integer, ForeignKey("clubs.clubid"), primary_key=True)
-    role = Column(String(255), index=True)
+    role = Column(String(255))
 
-class Coversations(Base):
+class Conversations(Base):
     __tablename__ = "conversations"
 
-    conversationid = Column(Integer, primary_key=True, index=True)
+    conversationid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user1id = Column(Integer, ForeignKey("users.userid"), primary_key=True)
     user2id = Column(Integer, ForeignKey("users.userid"), primary_key=True)
 
 class Messages(Base):
     __tablename__ = "messages"
 
-    messageid = Column(Integer, primary_key=True, index=True)
+    messageid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     conversationid = Column(Integer, ForeignKey("conversations.conversationid"), primary_key=True)
     senderid = Column(Integer, ForeignKey("users.userid"), primary_key=True)
     content = Column(Text)
-    timestamp = Column(TIMESTAMP, default=datetime.now())
+    timestamp = Column(TIMESTAMP, default=datetime.now(timezone.utc))
 
 class Posts(Base):
     __tablename__ = "posts"
 
-    postid = Column(Integer, primary_key=True, index=True)
+    postid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     clubid = Column(Integer, ForeignKey("clubs.clubid"), primary_key=True)
     title = Column(String(255))
     content = Column(Text)
-    timestamp = Column(TIMESTAMP, default=datetime.now())
+    timestamp = Column(TIMESTAMP, default=datetime.now(timezone.utc))
 
 class Events(Base):
     __tablename__ = "events"
 
-    eventid = Column(Integer, primary_key=True, index=True)
+    eventid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     clubid = Column(Integer, ForeignKey("clubs.clubid"), primary_key=True)
     title = Column(String(255))
     description = Column(Text)
