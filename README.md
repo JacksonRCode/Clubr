@@ -5,7 +5,7 @@
 
   ## Running the code
 
-  Run `npm i` to install the dependencies.
+  Run `npm i` from the frontend directory to install the dependencies.
 
   Run `npm run dev` to start the development server.
   
