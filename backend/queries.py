@@ -1,5 +1,6 @@
 from models import *
 from database import SessionLocal
+from cpp_bridge import encrypt_password
 
 # Helper functions for database operations
 
@@ -12,9 +13,12 @@ def create_user(email: str, password: str, name: str, profiledescription: str):
     existing_user = db.query(Users).filter(Users.email==email).first()
     if existing_user:
         print(f"This user already exists.")
+        db.close()
         return None
     
-    new_user = Users(email=email, password=password, name=name, profiledescription = profiledescription)
+    # Hash password before storing
+    hashed_password = encrypt_password(password)
+    new_user = Users(email=email, password=hashed_password, name=name, profiledescription = profiledescription)
 
     try:
         # Add a new user
@@ -49,7 +53,8 @@ def check_existing_user(email: str, password: str):
             return None
         
         # Check if correct password for user
-        if existing_user.password == password:
+        input_hash = encrypt_password(password)
+        if existing_user.password == input_hash:
             print(f"Correct password.")
             return existing_user
         else:
