@@ -1,71 +1,62 @@
-from models import *
-from database import SessionLocal
+from sqlalchemy.orm import Session
+from models import Users
 from cpp_bridge import encrypt_password
 
-# Helper functions for database operations
-
 # Database function for creating a user (signing up)
-def create_user(email: str, password: str, name: str, profiledescription: str):
-
-    db = SessionLocal()
-
-    # Check if user already exists
-    existing_user = db.query(Users).filter(Users.email==email).first()
+# CHANGE: Added 'db: Session' as the first argument
+def create_user(db: Session, email: str, password: str, name: str, profiledescription: str):
+    # 1. Check if user already exists
+    existing_user = db.query(Users).filter(Users.email == email).first()
     if existing_user:
-        print(f"This user already exists.")
-        db.close()
+        print(f"User with email {email} already exists.")
         return None
     
-    # Hash password before storing
+    # 2. ENCRYPT THE PASSWORD (C++ Bridge)
     hashed_password = encrypt_password(password)
-    new_user = Users(email=email, password=hashed_password, name=name, profiledescription = profiledescription)
 
+    # 3. Create the User Object
+    new_user = Users(
+        email=email, 
+        password=hashed_password, 
+        name=name, 
+        profiledescription=profiledescription
+    )
+
+    # 4. Save to DB
     try:
-        # Add a new user
         db.add(new_user)
         db.commit()
-
-        # Refresh object to get its ID
         db.refresh(new_user)
-
-        print(f"New user has been successfully added.")
+        print(f"New user {name} successfully added.")
         return new_user
-    
     except Exception as e:
-        # Rollback in case of error
         db.rollback()
-        print(f"Error has occured when trying to add new user: {e}")
-    
-    finally:
-        db.close()
+        print(f"Error adding user: {e}")
+        return None
 
 # Database function to check if user already exists (logging in)
-def check_existing_user(email: str, password: str):
-
-    db = SessionLocal()
-
+# CHANGE: Added 'db: Session' as the first argument
+def check_existing_user(db: Session, email: str, password: str):
     try:
-        # Check if user already exists (via email)
-        existing_user = db.query(Users).filter(Users.email==email).first()
+        # 1. Find user by email
+        existing_user = db.query(Users).filter(Users.email == email).first()
 
         if existing_user is None:
-            print(f"User does not exist")
+            print(f"Login failed: User not found")
             return None
         
-        # Check if correct password for user
+        # 2. ENCRYPT INPUT PASSWORD AND COMPARE
+        # We hash the input "password123" -> "1a2b..." 
+        # and check if it matches the stored hash.
         input_hash = encrypt_password(password)
+        
         if existing_user.password == input_hash:
-            print(f"Correct password.")
+            print(f"Login successful for {email}")
             return existing_user
         else:
-            print(f"Incorrect password.")
+            print(f"Login failed: Incorrect password")
             return None
     
     except Exception as e:
-        # Rollback in case of error
-        print(f"Error has occured when trying to add log in: {e}")
-    
-    finally:
-        db.close()
-
-
+        print(f"Error during login: {e}")
+        return None
