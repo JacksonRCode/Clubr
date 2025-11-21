@@ -4,7 +4,7 @@ from cpp_bridge import encrypt_password
 
 # Database function for creating a user (signing up)
 # CHANGE: Added 'db: Session' as the first argument
-def create_user(db: Session, email: str, password: str, name: str, profiledescription: str):
+def create_user(db: Session, email: str, password: str, name: str, profiledescription: str | None = None):
     # 1. Check if user already exists
     existing_user = db.query(Users).filter(Users.email == email).first()
     if existing_user:

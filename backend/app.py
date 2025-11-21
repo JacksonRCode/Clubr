@@ -32,7 +32,7 @@ class UserSignup(BaseModel):
     name: str
     email: str
     password: str
-    profiledescription: str 
+    profiledescription: str | None = None 
 
 class UserLogin(BaseModel):
     email: str
@@ -44,7 +44,8 @@ class UserLogin(BaseModel):
 def signup(user: UserSignup, db: Session = Depends(get_db)):
     # CALL QUERIES.PY (Pass the 'db' session securely)
     new_user = create_user(db, user.email, user.password, user.name, user.profiledescription)
-    
+    print("new user")
+    print(new_user)
     if new_user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
