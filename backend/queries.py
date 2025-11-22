@@ -1,11 +1,35 @@
 from sqlalchemy.orm import Session
-from models import Users
+from models import Users, Tags, UserTags
+
 from cpp_bridge import encrypt_password
+
+def create_user_tags(db: Session, user_id: int, tags: list[str]):
+    tag_ids = []
+    for tag in tags:
+        tag = db.query(Tags).filter(Tags.tagname.ilike(tag)).first()
+        if tag:
+            tag_ids.append(tag.tagid)
+    
+    for tag_id in tag_ids:
+        # Check if already exists to prevent errors
+        existing_tag = db.query(UserTags).filter(
+            UserTags.userid == user_id, 
+            UserTags.tagid == tag_id
+        ).first()
+        
+        if not existing_tag:
+            user_tag = UserTags(userid=user_id, tagid=tag_id)
+            db.add(user_tag)
+            db.commit()
+        else:
+            print(f"User {user_id} already has tag {tag_id}")
+
+
 
 # Database function for creating a user (signing up)
 # CHANGE: Added 'db: Session' as the first argument
-def create_user(db: Session, email: str, password: str, name: str, profiledescription: str):
-    # 1. Check if user already exists
+def create_user(db: Session, email: str, password: str, name: str, profiledescription: str | None = None):
+    # 1. Check if user already exists   
     existing_user = db.query(Users).filter(Users.email == email).first()
     if existing_user:
         print(f"User with email {email} already exists.")

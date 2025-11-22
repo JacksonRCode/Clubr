@@ -40,6 +40,7 @@ export function LoginPage({ onLogin, onSignUp }: LoginPageProps) {
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem("token", data.access_token);
         toast.success("Welcome back!");
         onLogin();
       } else {
@@ -69,6 +70,7 @@ export function LoginPage({ onLogin, onSignUp }: LoginPageProps) {
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem("token", data.access_token);
         toast.success("Account created successfully!");
         onSignUp();
       } else {

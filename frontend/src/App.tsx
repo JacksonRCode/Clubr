@@ -51,11 +51,35 @@ export default function App() {
     setAppState('interests');
   };
 
-  const handleInterestsComplete = (interests: string[]) => {
-    setUserInterests(interests);
-    setAppState('app');
-    setCurrentPage('discovery');
-    toast.success('Welcome to Clubr! Discover clubs based on your interests.');
+  const handleInterestsComplete = async (interests: string[]) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("You must be logged in to save interests");
+        return;
+      }
+
+      const response = await fetch("http://localhost:8000/api/save_tags", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(interests),
+      });
+
+      if (response.ok) {
+        setUserInterests(interests);
+        setAppState('app');
+        setCurrentPage('discovery');
+        toast.success('Welcome to Clubr! Discover clubs based on your interests.');
+      } else {
+        toast.error("Failed to save interests");
+      }
+    } catch (error) {
+      console.error("Error saving interests:", error);
+      toast.error("Could not connect to server");
+    }
   };
 
   const handleLogout = () => {
