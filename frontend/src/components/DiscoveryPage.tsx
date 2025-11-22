@@ -19,7 +19,7 @@ export function DiscoveryPage({ clubs, events, onClubClick, onEventClick, onFoll
   const filteredClubs = clubs.filter(club =>
     club.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     club.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    club.categories.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()))
+    club.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -30,7 +30,7 @@ export function DiscoveryPage({ clubs, events, onClubClick, onEventClick, onFoll
           <div>
             <h2 className="text-gray-900 mb-4">Discover Clubs</h2>
             <p className="text-gray-600 mb-6">Recommended clubs based on your interests</p>
-            
+
             {/* Search Bar - Enhanced Visibility */}
             <div className="relative mb-2">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-5 h-5" />
@@ -48,7 +48,7 @@ export function DiscoveryPage({ clubs, events, onClubClick, onEventClick, onFoll
               </p>
             )}
           </div>
-          
+
           <div className="grid sm:grid-cols-2 gap-6">
             {filteredClubs.map((club) => (
               <ClubCard
@@ -67,7 +67,7 @@ export function DiscoveryPage({ clubs, events, onClubClick, onEventClick, onFoll
             <h3 className="text-gray-900 mb-4">All Events</h3>
             <p className="text-gray-600 mb-6">Upcoming events from all clubs</p>
           </div>
-          
+
           <div className="space-y-4">
             {events.map((event) => (
               <EventCard key={event.id} event={event} onEventClick={() => onEventClick(event)} />

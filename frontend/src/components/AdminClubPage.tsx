@@ -12,7 +12,7 @@ import { PostCard } from './PostCard';
 import { EventCard } from './EventCard';
 import { Club, Post, Event } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface AdminClubPageProps {
   club: Club;

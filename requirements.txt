@@ -7,3 +7,4 @@ psycopg2-binary
 alembic
 passlib[bcrypt]
 pydantic
+python-jose[cryptography]

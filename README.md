@@ -5,10 +5,22 @@
 
   ## Running the code
 
-  Run `npm i` to install the dependencies.
+  Run `npm i` from the frontend directory to install the dependencies.
 
   Run `npm run dev` to start the development server.
   
+  ## Compile code needed for C++ integration
+  Windows:
+
+  ```g++ -shared -o encryption.dll encryption.cpp```
+
+  Mac:
+
+  ```g++ -dynamiclib -o encryption.dylib encryption.cpp```
+
+  Linux:
+
+  ```g++ -shared -fPIC -o encryption.so encryption.cpp```
 
   ## Run from the project root (Clubr/) backend
     uvicorn api.index:app --reload --port 8000
