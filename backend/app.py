@@ -6,11 +6,12 @@ import models
 
 # Import the Logic functions
 from queries import create_user, check_existing_user
+from core_logic import signup_user_core, login_user_core,create_event_core, list_events_for_club_core, list_all_events_core, create_post_core, list_posts_for_club_core
 
 # Import DB setup
 from database import get_db
 from auth import create_access_token, get_current_user
-from datetime import timedelta
+from datetime import timedelta, datetime
 from auth import ACCESS_TOKEN_EXPIRE_MINUTES
 
 app = FastAPI()
@@ -41,66 +42,81 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+class EventCreate(BaseModel):
+    club_id: int
+    title: str
+    description: str
+    start_datetime: datetime
+    end_datetime: datetime
+    location: str
+
+class PostCreate(BaseModel):
+    club_id: int
+    title: str
+    content: str
+
+class EventUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    start_datetime: datetime | None = None
+    end_datetime: datetime | None = None
+    location: str | None = None
+
+class PostUpdate(BaseModel):
+    title: str | None = None
+    content: str | None = None
+
+
 # --- ROUTES ---
 
 @app.post("/api/signup")
 def signup(user: UserSignup, db: Session = Depends(get_db)):
-    # CALL QUERIES.PY (Pass the 'db' session securely)
-    new_user = create_user(db, user.email, user.password, user.name, user.profiledescription)
-    print("new user")
-    print(new_user)
-    if new_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="User already exists or creation failed"
-        )
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": new_user.email}, expires_delta=access_token_expires
-    )
-
-    return {
-        "status": "success", 
-        "message": "User created successfully", 
-        "user_id": new_user.userid,
-        "email": new_user.email,
-        "access_token": access_token,
-        "token_type": "bearer"
-    }
+    return signup_user_core(user, db)
 
 @app.post("/api/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
-    # CALL QUERIES.PY (Pass the 'db' session securely)
-    valid_user = check_existing_user(db, user.email, user.password)
-    
-    if valid_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
-        )
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": valid_user.email}, expires_delta=access_token_expires
-    )
+    return login_user_core(user, db)
 
-    return {
-        "status": "success",
-        "message": "Login successful",
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": {
-            "id": valid_user.userid,
-            "name": valid_user.name,
-            "email": valid_user.email
-        }
-    }
 @app.post("/api/save_tags")
 def save_user_tags(tags: list[str], current_user: models.Users = Depends(get_current_user), db: Session = Depends(get_db)):
     from queries import create_user_tags
     create_user_tags(db, current_user.userid, tags)
     return {"status": "success", "message": "Tags saved successfully"}
+
+@app.post("/api/events")
+def create_event(
+    event: EventCreate,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return create_event_core(event, current_user, db)
+
+@app.get("/api/clubs/{club_id}/events")
+def get_events_for_club(
+    club_id: int,
+    db: Session = Depends(get_db),
+):
+    return list_events_for_club_core(club_id, db)
+
+@app.get("/api/events")
+def get_all_events(db: Session = Depends(get_db)):
+    return list_all_events_core(db)
+
+@app.post("/api/posts")
+def create_post(
+    post: PostCreate,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return create_post_core(post, current_user, db)
+
+@app.get("/api/clubs/{club_id}/posts")
+def get_posts_for_club(
+    club_id: int,
+    db: Session = Depends(get_db),
+):
+    return list_posts_for_club_core(club_id, db)
+
 # --- Health Checks ---
 @app.get("/")
 def read_root():
@@ -109,3 +125,39 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "online", "message": "Healthy"}
+
+@app.put("/api/events/{event_id}")
+def update_event(
+    event_id: int,
+    event: EventUpdate,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return update_event_core(event_id, event, current_user, db)
+
+
+@app.delete("/api/events/{event_id}")
+def delete_event(
+    event_id: int,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return delete_event_core(event_id, current_user, db)
+
+@app.put("/api/posts/{post_id}")
+def update_post(
+    post_id: int,
+    post: PostUpdate,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return update_post_core(post_id, post, current_user, db)
+
+
+@app.delete("/api/posts/{post_id}")
+def delete_post(
+    post_id: int,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return delete_post_core(post_id, current_user, db)
