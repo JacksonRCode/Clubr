@@ -3,29 +3,6 @@ from models import *
 
 from cpp_bridge import encrypt_password
 
-def create_user_tags(db: Session, user_id: int, tags: list[str]):
-    tag_ids = []
-    for tag in tags:
-        tag = db.query(Tags).filter(Tags.tagname.ilike(tag)).first()
-        if tag:
-            tag_ids.append(tag.tagid)
-    
-    for tag_id in tag_ids:
-        # Check if already exists to prevent errors
-        existing_tag = db.query(UserTags).filter(
-            UserTags.userid == user_id, 
-            UserTags.tagid == tag_id
-        ).first()
-        
-        if not existing_tag:
-            user_tag = UserTags(userid=user_id, tagid=tag_id)
-            db.add(user_tag)
-            db.commit()
-        else:
-            print(f"User {user_id} already has tag {tag_id}")
-
-
-
 # Database function for creating a user (signing up)
 # CHANGE: Added 'db: Session' as the first argument
 def create_user(db: Session, email: str, password: str, name: str, profiledescription: str | None = None):
@@ -88,6 +65,53 @@ def check_existing_user(db: Session, email: str, password: str):
     finally:
         db.close()
 
+# Database function for updating user profile info (name and profile description)
+def update_user_profile(db: Session, email: str, name: str, profiledescription: str):
+    user = db.query(Users).filter(Users.email == email).first()
+    
+    # If user does not exist, return None
+    if not user:
+        return None
+    
+    # Edit user details
+    try:
+        user.name = name
+        user.profiledescription = profiledescription
+        db.commit()
+        db.refresh(user)
+        return user
+
+    # Rollback and print error mssg in case of error
+    except Exception as e:
+        db.rollback()
+        print(f"Error has occured when trying to edit user details: {e}")
+        return None
+
+    finally:
+        db.close()
+
+# Database function for adding user tags that reflects user's selected interests during sign up
+def create_user_tags(db: Session, user_id: int, tags: list[str]):
+    tag_ids = []
+    for tag in tags:
+        tag = db.query(Tags).filter(Tags.tagname.ilike(tag)).first()
+        if tag:
+            tag_ids.append(tag.tagid)
+    
+    for tag_id in tag_ids:
+        # Check if already exists to prevent errors
+        existing_tag = db.query(UserTags).filter(
+            UserTags.userid == user_id, 
+            UserTags.tagid == tag_id
+        ).first()
+        
+        if not existing_tag:
+            user_tag = UserTags(userid=user_id, tagid=tag_id)
+            db.add(user_tag)
+            db.commit()
+        else:
+            print(f"User {user_id} already has tag {tag_id}")
+
 # Database function for creating a tag
 def create_tags(db: Session, tagname: str):
     
@@ -133,6 +157,35 @@ def create_clubs(db: Session, clubname: str, description: str):
         db.rollback()
         print(f"Error has occured when trying to add new club: {e}")
     
+    finally:
+        db.close()
+
+# Database function for getting all clubs
+def get_all_clubs(db: Session):
+    return db.query(Clubs).all()
+
+# Database function for updating club profile info (name and profile description)
+def update_club_profile(db: Session, club_id: int, name: str, profiledescription: str):
+    club = db.query(Clubs).filter_by(clubid=club_id).first()
+    
+    # If club does not exist, return None
+    if not club:
+        return None
+    
+    # Edit club details
+    try:
+        club.clubname = name
+        club.description = profiledescription
+        db.commit()
+        db.refresh(club)
+        return club
+
+    # Rollback and print error mssg in case of error
+    except Exception as e:
+        db.rollback()
+        print(f"Error has occured when trying to edit club details: {e}")
+        return None
+
     finally:
         db.close()
 

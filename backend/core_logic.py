@@ -11,19 +11,8 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 # USER / AUTH
-from queries import (
-    create_user,
-    check_existing_user,
-    create_user_tags,
-    create_event,
-    get_event_by_id,
-    update_event,
-    delete_event,
-    create_post,
-    get_post_by_id,
-    update_post,
-    delete_post,
-)
+from queries import *
+
 from auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 
 def signup_user_core(user: Any, db: Session) -> dict:
