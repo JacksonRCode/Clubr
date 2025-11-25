@@ -3,9 +3,9 @@ from models import *
 
 from cpp_bridge import encrypt_password
 
-# ------------ DB Functions for Users------------
+# ------------ DB + Core Functions for Users ------------
 
-# Database function for creating a user (signing up)
+# Function for creating a user (signing up)
 # CHANGE: Added 'db: Session' as the first argument
 def create_user(db: Session, email: str, password: str, name: str, profiledescription: str | None = None):
     # 1. Check if user already exists   
@@ -37,7 +37,7 @@ def create_user(db: Session, email: str, password: str, name: str, profiledescri
         print(f"Error adding user: {e}")
         return None
 
-# Database function to check if user already exists (logging in)
+# Function to check if user already exists (logging in)
 # CHANGE: Added 'db: Session' as the first argument
 def check_existing_user(db: Session, email: str, password: str):
     try:
@@ -64,7 +64,7 @@ def check_existing_user(db: Session, email: str, password: str):
         # Rollback in case of error
         print(f"Error has occured when trying to add log in: {e}")
 
-# Database function for updating user profile info (name and profile description)
+# Function for updating user profile info (name and profile description)
 def update_user_profile(db: Session, email: str, name: str, profiledescription: str):
     user = db.query(Users).filter(Users.email == email).first()
     
@@ -86,9 +86,9 @@ def update_user_profile(db: Session, email: str, name: str, profiledescription: 
         print(f"Error has occured when trying to edit user details: {e}")
         return None
 
-# ------------ DB Functions for Clubs ------------
+# ------------ DB + Core Functions for Clubs ------------
 
-# Database function for creating a club
+# Function for creating a club
 def create_clubs(db: Session, clubname: str, description: str):
     
     new_club = Clubs(clubname=clubname, description=description)
@@ -109,7 +109,7 @@ def create_clubs(db: Session, clubname: str, description: str):
         db.rollback()
         print(f"Error has occured when trying to add new club: {e}")
 
-# Database function for getting all clubs
+# Function for getting all clubs
 def get_all_clubs(db: Session):
     try:
         all_clubs = db.query(Clubs).all()
@@ -120,7 +120,7 @@ def get_all_clubs(db: Session):
         db.rollback()
         print(f"Error has occured when trying to get all clubs: {e}")
 
-# Database function for updating club profile info (name and profile description)
+# Function for updating club profile info (name and profile description)
 def update_club_profile(db: Session, club_id: int, name: str, profiledescription: str):
     club = db.query(Clubs).filter_by(clubid=club_id).first()
     
@@ -142,9 +142,9 @@ def update_club_profile(db: Session, club_id: int, name: str, profiledescription
         print(f"Error has occured when trying to edit club details: {e}")
         return None
 
-# ------------ DB Functions for Tags ------------
+# ------------ DB + Core Functions for Tags ------------
 
-# Database function for creating a tag
+# Function for creating a tag
 def create_tags(db: Session, tagname: str):
     
     new_tag = Tags(tagname=tagname)
@@ -165,7 +165,7 @@ def create_tags(db: Session, tagname: str):
         db.rollback()
         print(f"Error has occured when trying to add new tag: {e}")
 
-# Database function for adding user tags that reflects user's selected interests during sign up
+# Function for adding user tags that reflects user's selected interests during sign up
 def create_user_tags(db: Session, user_id: int, tags: list[str]):
     tag_ids = []
     for tag in tags:
@@ -187,7 +187,7 @@ def create_user_tags(db: Session, user_id: int, tags: list[str]):
         else:
             print(f"User {user_id} already has tag {tag_id}")
 
-# Database function to get all tags from a specific user
+# Function to get all tags from a specific user
 def get_user_tags(db: Session, user_id: int):
     try:
         # Get all tags from a specific user
@@ -199,7 +199,7 @@ def get_user_tags(db: Session, user_id: int):
         db.rollback()
         print(f"Error has occured when trying to get user tags: {e}")
 
-# Database function for adding club tags
+# Function for adding club tags
 def create_club_tags(db: Session, club_id: int, tags: list[str]):
     tag_ids = []
     for tag in tags:
@@ -221,7 +221,7 @@ def create_club_tags(db: Session, club_id: int, tags: list[str]):
         else:
             print(f"Club {club_tag} already has tag {tag_id}")
 
-# Database function to get all tags from a specific club
+# Function to get all tags from a specific club
 def get_club_tags(db: Session, club_id: int):
     try:
         # Get all tags from a specific club
@@ -233,7 +233,7 @@ def get_club_tags(db: Session, club_id: int):
         db.rollback()
         print(f"Error has occured when trying to get club tags: {e}")
 
-# Database function to get list of recommended clubs based on tags for a specific user 
+# Function to get list of recommended clubs based on tags for a specific user 
 def get_recommended_clubs(db: Session, user_id: int):
     try:
 
@@ -277,9 +277,9 @@ def get_recommended_clubs(db: Session, user_id: int):
         print(f"Error has occured when trying to get recommended clubs for user {user_id}: {e}")
         return []
 
-# ------------ DB Functions for Membership ------------
+# ------------ DB + Core Functions for Membership ------------
 
-# Database function for checking membership
+# Function for checking membership
 def check_membership(db: Session, user_id: int, club_id: int):
     try:
         # Check if in ClubMembership table
@@ -291,7 +291,7 @@ def check_membership(db: Session, user_id: int, club_id: int):
         print(f"Error when checking membership for user {user_id} and club {club_id}: {e}")
         return None
 
-# Database function for following a club
+# Function for following a club
 def follow_club(db: Session, user_id: int, club_id: int):
 
     # Check if already following
@@ -315,7 +315,7 @@ def follow_club(db: Session, user_id: int, club_id: int):
         print(f"Error when adding new follower: {e}")
         return None
 
-# Database function for unfollowing a club
+# Function for unfollowing a club
 def unfollow_club(db: Session, user_id: int, club_id: int):
 
     # Check if already following
@@ -326,7 +326,7 @@ def unfollow_club(db: Session, user_id: int, club_id: int):
         return None
 
     try:
-        # Remove follower
+        # Unfollow
         db.query(ClubMembership).filter_by(userid=user_id, clubid=club_id).delete()
         db.commit()
 
@@ -336,7 +336,7 @@ def unfollow_club(db: Session, user_id: int, club_id: int):
         print(f"Error has occured when unfollowing: {e}")
         return None
 
-# Database function for getting all followers for a specific user
+# Function for getting all clubs that the user follows
 def get_all_followed_clubs(db: Session, user_id: int):
     try:
         # Get all clubs that the user follows
@@ -349,7 +349,7 @@ def get_all_followed_clubs(db: Session, user_id: int):
         print(f"Error has occured when getting all followed clubs for user {user_id}: {e}")
         return None
 
-# Database function for getting all followers for a specific club
+# Function for getting all followers for a specific club
 def get_all_club_followers(db: Session, club_id: int):
     try:
         # Get all followers for that club
@@ -362,7 +362,7 @@ def get_all_club_followers(db: Session, club_id: int):
         print(f"Error has occured when getting all followers for club {club_id}: {e}")
         return None
 
-# Database function to check admin status for a specific user and club
+# Function to check admin status for a specific user and club
 def check_admin_status(db: Session, user_id: int, club_id: int):
     try:
         # Check club membership table
@@ -382,7 +382,7 @@ def check_admin_status(db: Session, user_id: int, club_id: int):
         print(f"Error has occured when checking admin status for user {user_id} in {club_id}: {e}")
         return False
 
-# Database function to get all club admins for a specific club
+# Function to get all club admins for a specific club
 def get_club_admins(db: Session, club_id: int):
     try: 
         # Get all club admins for a specific club
@@ -395,7 +395,7 @@ def get_club_admins(db: Session, club_id: int):
         print(f"Error has occured when getting all club admins for club {club_id}: {e}")
         return None
 
-# Database function to get all clubs for which the user is an admin
+# Function to get all clubs for which the user is an admin
 def get_all_admin_clubs_for_user(db: Session, user_id: int):
     try:
         # Get all clubs that the user is an admin for
@@ -408,7 +408,7 @@ def get_all_admin_clubs_for_user(db: Session, user_id: int):
         print(f"Error has occured when getting all clubs for which the user {user_id} is an admin: {e}")
         return None
 
-# Database function to add new club admin
+# Function to add new club admin
 def add_club_admin(db: Session, user_id: int, club_id: int):
     try:
         # Check club membership table
@@ -439,7 +439,7 @@ def add_club_admin(db: Session, user_id: int, club_id: int):
         print(f"Error has occured when adding new club admin {user_id} for club {club_id}: {e}")
         return None
 
-# Database function to remove a club admin
+# Function to remove a club admin
 def remove_club_admin(db: Session, user_id: int, club_id: int):
     try:
         # Check club membership table
@@ -462,3 +462,75 @@ def remove_club_admin(db: Session, user_id: int, club_id: int):
         print(f"Error has occured when removing club admin {user_id} from club {club_id}: {e}")
         return None
     
+# ------------ DB + Core Functions for Admin Mode ------------
+
+# Function for checking membership/follow-status between clubs
+def check_club_to_club_membership(db: Session, club_id1: int, club_id2: int):
+    try:
+        # Check if in ClubToClubMembership table
+        membership = db.query(ClubToClubMembership).filter_by(club1id=club_id1, club2id=club_id2).first()
+        return membership
+    
+    except Exception as e:
+        db.rollback()
+        print(f"Error when checking if {club_id1} follows {club_id2}: {e}")
+        return None
+
+# Function for following a club as a club
+def follow_club_as_club(db: Session, club_id1: int, club_id2: int):
+
+    # Check if already following
+    existing_follower = check_club_to_club_membership(db, club_id1, club_id2)
+
+    # If follower doesn't exist, return None
+    if existing_follower:
+        return None
+    
+    # Create ClubToClubMembership Object
+    new_follower = ClubToClubMembership(club1id=club_id1, club2id=club_id2)
+
+    # Save to DB
+    try:
+        db.add(new_follower)
+        db.commit()
+        db.refresh(new_follower)
+        return new_follower
+
+    except Exception as e:
+        db.rollback()
+        print(f"Error when following a club {club_id2}: {e}")
+        return None
+
+# Function for unfollowing a club as a club
+def unfollow_club_as_club(db: Session, club_id1: int, club_id2: int):
+
+    # Check if already following
+    existing_follower = check_club_to_club_membership(db, club_id1, club_id2)
+
+    # If follower doesn't exist, return None
+    if existing_follower is None:
+        return None
+
+    try:
+        # Unfollow club
+        db.query(ClubToClubMembership).filter_by(club1id=club_id1, club2id=club_id2).delete()
+        db.commit()
+
+    # Rollback and print error mssg in case of error
+    except Exception as e:
+        db.rollback()
+        print(f"Error has occured when unfollowing club {club_id2} as a club: {e}")
+        return None
+
+# Function for getting all clubs followed by a club
+def get_all_followed_clubs_by_club(db: Session, club_id: int):
+    try:
+        # Get all clubs that the club follows
+        all_followed_clubs = db.query(Clubs).join(ClubToClubMembership, Clubs.clubid == ClubToClubMembership.club2id).filter(ClubToClubMembership.club1id == club_id).all()
+        return all_followed_clubs
+
+    except Exception as e:
+        # Rollback in case of error
+        db.rollback()
+        print(f"Error has occured when getting all followed clubs for club {club_id}: {e}")
+        return None

@@ -1,8 +1,9 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, TIMESTAMP
-from sqlalchemy.orm import relationship
+# from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from database import Base
 
+# DB model for users
 class Users(Base):
     __tablename__ = "users"
 
@@ -12,12 +13,14 @@ class Users(Base):
     name = Column(String(255))
     profiledescription = Column(Text)
 
+# DB model for tags
 class Tags(Base):
     __tablename__ = "tags"
 
     tagid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     tagname = Column(String(255), unique=True, index=True)
 
+# DB model for clubs
 class Clubs(Base):
     __tablename__ = "clubs"
 
@@ -25,18 +28,21 @@ class Clubs(Base):
     clubname = Column(String(255), unique=True, index=True)
     description = Column(Text)
 
+# DB model for club's tags/interests
 class ClubTags(Base):
     __tablename__ = "clubtags"
 
     clubid = Column(Integer, ForeignKey("clubs.clubid"), primary_key=True)
     tagid = Column(Integer, ForeignKey("tags.tagid"), primary_key=True)
 
+# DB model for user's tags/interests
 class UserTags(Base):
     __tablename__ = "usertags"
 
     userid = Column(Integer, ForeignKey("users.userid"), primary_key=True)
     tagid = Column(Integer, ForeignKey("tags.tagid"), primary_key=True)
 
+# DB model for membership between user and club
 class ClubMembership(Base):
     __tablename__ = "clubmembership"
 
@@ -44,6 +50,14 @@ class ClubMembership(Base):
     clubid = Column(Integer, ForeignKey("clubs.clubid"), primary_key=True)
     role = Column(String(255))
 
+# DB model for membership between club to club (for admin mode)
+class ClubToClubMembership(Base):
+    __tablename__ = "clubtoclubmembership"
+
+    club1id = Column(Integer, ForeignKey("clubs.clubid"), primary_key=True)
+    club2id = Column(Integer, ForeignKey("clubs.clubid"), primary_key=True)
+
+# DB model for conversations
 class Conversations(Base):
     __tablename__ = "conversations"
 
@@ -51,6 +65,7 @@ class Conversations(Base):
     user1id = Column(Integer, ForeignKey("users.userid"), primary_key=True)
     user2id = Column(Integer, ForeignKey("users.userid"), primary_key=True)
 
+# DB model for messages
 class Messages(Base):
     __tablename__ = "messages"
 
@@ -60,6 +75,7 @@ class Messages(Base):
     content = Column(Text)
     timestamp = Column(TIMESTAMP, default=datetime.now(timezone.utc))
 
+# DB model for posts
 class Posts(Base):
     __tablename__ = "posts"
 
@@ -69,6 +85,7 @@ class Posts(Base):
     content = Column(Text)
     timestamp = Column(TIMESTAMP, default=datetime.now(timezone.utc))
 
+# DB model for events
 class Events(Base):
     __tablename__ = "events"
 
