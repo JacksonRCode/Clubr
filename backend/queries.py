@@ -3,6 +3,8 @@ from models import *
 
 from cpp_bridge import encrypt_password
 
+# ------------ DB Functions for Users------------
+
 # Database function for creating a user (signing up)
 # CHANGE: Added 'db: Session' as the first argument
 def create_user(db: Session, email: str, password: str, name: str, profiledescription: str | None = None):
@@ -61,9 +63,6 @@ def check_existing_user(db: Session, email: str, password: str):
     except Exception as e:
         # Rollback in case of error
         print(f"Error has occured when trying to add log in: {e}")
-    
-    finally:
-        db.close()
 
 # Database function for updating user profile info (name and profile description)
 def update_user_profile(db: Session, email: str, name: str, profiledescription: str):
@@ -87,54 +86,7 @@ def update_user_profile(db: Session, email: str, name: str, profiledescription: 
         print(f"Error has occured when trying to edit user details: {e}")
         return None
 
-    finally:
-        db.close()
-
-# Database function for adding user tags that reflects user's selected interests during sign up
-def create_user_tags(db: Session, user_id: int, tags: list[str]):
-    tag_ids = []
-    for tag in tags:
-        tag = db.query(Tags).filter(Tags.tagname.ilike(tag)).first()
-        if tag:
-            tag_ids.append(tag.tagid)
-    
-    for tag_id in tag_ids:
-        # Check if already exists to prevent errors
-        existing_tag = db.query(UserTags).filter(
-            UserTags.userid == user_id, 
-            UserTags.tagid == tag_id
-        ).first()
-        
-        if not existing_tag:
-            user_tag = UserTags(userid=user_id, tagid=tag_id)
-            db.add(user_tag)
-            db.commit()
-        else:
-            print(f"User {user_id} already has tag {tag_id}")
-
-# Database function for creating a tag
-def create_tags(db: Session, tagname: str):
-    
-    new_tag = Tags(tagname=tagname)
-
-    try:
-        # Add a new user
-        db.add(new_tag)
-        db.commit()
-
-        # Refresh object to get its ID
-        db.refresh(new_tag)
-
-        print(f"New tag has been successfully added.")
-        return new_tag
-    
-    except Exception as e:
-        # Rollback in case of error
-        db.rollback()
-        print(f"Error has occured when trying to add new tag: {e}")
-    
-    finally:
-        db.close()
+# ------------ DB Functions for Clubs ------------
 
 # Database function for creating a club
 def create_clubs(db: Session, clubname: str, description: str):
@@ -156,13 +108,17 @@ def create_clubs(db: Session, clubname: str, description: str):
         # Rollback in case of error
         db.rollback()
         print(f"Error has occured when trying to add new club: {e}")
-    
-    finally:
-        db.close()
 
 # Database function for getting all clubs
 def get_all_clubs(db: Session):
-    return db.query(Clubs).all()
+    try:
+        all_clubs = db.query(Clubs).all()
+        return all_clubs
+    
+    except Exception as e:
+        # Rollback in case of error
+        db.rollback()
+        print(f"Error has occured when trying to get all clubs: {e}")
 
 # Database function for updating club profile info (name and profile description)
 def update_club_profile(db: Session, club_id: int, name: str, profiledescription: str):
@@ -186,7 +142,139 @@ def update_club_profile(db: Session, club_id: int, name: str, profiledescription
         print(f"Error has occured when trying to edit club details: {e}")
         return None
 
-    finally:
-        db.close()
+# ------------ DB Functions for Tags ------------
+
+# Database function for creating a tag
+def create_tags(db: Session, tagname: str):
+    
+    new_tag = Tags(tagname=tagname)
+
+    try:
+        # Add a new user
+        db.add(new_tag)
+        db.commit()
+
+        # Refresh object to get its ID
+        db.refresh(new_tag)
+
+        print(f"New tag has been successfully added.")
+        return new_tag
+    
+    except Exception as e:
+        # Rollback in case of error
+        db.rollback()
+        print(f"Error has occured when trying to add new tag: {e}")
+
+# Database function for adding user tags that reflects user's selected interests during sign up
+def create_user_tags(db: Session, user_id: int, tags: list[str]):
+    tag_ids = []
+    for tag in tags:
+        tag = db.query(Tags).filter(Tags.tagname.ilike(tag)).first()
+        if tag:
+            tag_ids.append(tag.tagid)
+    
+    for tag_id in tag_ids:
+        # Check if already exists to prevent errors
+        existing_tag = db.query(UserTags).filter(
+            UserTags.userid == user_id, 
+            UserTags.tagid == tag_id
+        ).first()
+        
+        if not existing_tag:
+            user_tag = UserTags(userid=user_id, tagid=tag_id)
+            db.add(user_tag)
+            db.commit()
+        else:
+            print(f"User {user_id} already has tag {tag_id}")
+
+# Database function to get all tags from a specific user
+def get_user_tags(db: Session, user_id: int):
+    try:
+        # Get all tags from a specific user
+        user_tags = db.query(Tags).join(UserTags, Tags.tagid == UserTags.tagid).filter(UserTags.userid == user_id).all()
+        return user_tags
+    
+    except Exception as e:
+        # Rollback in case of error
+        db.rollback()
+        print(f"Error has occured when trying to get user tags: {e}")
+
+# Database function for adding club tags
+def create_club_tags(db: Session, club_id: int, tags: list[str]):
+    tag_ids = []
+    for tag in tags:
+        tag = db.query(Tags).filter(Tags.tagname.ilike(tag)).first()
+        if tag:
+            tag_ids.append(tag.tagid)
+    
+    for tag_id in tag_ids:
+        # Check if already exists to prevent errors
+        existing_tag = db.query(ClubTags).filter(
+            ClubTags.clubid == club_id, 
+            ClubTags.tagid == tag_id
+        ).first()
+        
+        if not existing_tag:
+            club_tag = ClubTags(clubid=club_id, tagid=tag_id)
+            db.add(club_tag)
+            db.commit()
+        else:
+            print(f"Club {club_tag} already has tag {tag_id}")
+
+# Database function to get all tags from a specific club
+def get_club_tags(db: Session, club_id: int):
+    try:
+        # Get all tags from a specific club
+        club_tags = db.query(Tags).join(ClubTags, Tags.tagid == ClubTags.tagid).filter(ClubTags.clubid == club_id).all()
+        return club_tags
+    
+    except Exception as e:
+        # Rollback in case of error
+        db.rollback()
+        print(f"Error has occured when trying to get club tags: {e}")
+
+# Database function to get list of recommended clubs based on tags for a specific user 
+def get_recommended_clubs(db: Session, user_id: int):
+    try:
+
+        # Get all tags from specific user
+        user_tags = get_user_tags(db, user_id)
+        if not user_tags:
+            return []
+        
+        # Convert into set of tag ids
+        user_tag_ids = set()
+        for tag in user_tags:
+            user_tag_ids.add(tag.tagid)
+
+        # Get all clubs
+        all_clubs = get_all_clubs(db)
+
+        recommended_clubs = []
+
+        # Check club tags for all clubs
+        for club in all_clubs:
+            club_tags = get_club_tags(db, club.clubid)
+
+            # Convert into set of club tag ids
+            club_tag_ids = set()
+            for tag in club_tags:
+                club_tag_ids.add(tag.tagid)
+        
+            # Compare user's tags and club's tags 
+            common_interests = user_tag_ids.intersection(club_tag_ids)
+
+            # If shared tags exist, then add to list of recommended clubs
+            if common_interests:
+                recommended_clubs.append(club)
+        
+        # Return list of recommended clubs
+        return recommended_clubs
+
+    except Exception as e:
+        # Rollback in case of error
+        db.rollback()
+        print(f"Error has occured when trying to get recommended clubs for user {user_id}: {e}")
+        return []
 
 
