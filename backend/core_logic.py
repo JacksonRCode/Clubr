@@ -429,8 +429,106 @@ def delete_post_core(
 
 # ---------- FEED POPULATION CORE LOGIC ----------
 
-def get_posts_from_followed():
-    pass
 
-def get_events_from_followed():
-    pass
+
+"""
+class Feed:
+
+posts = queue()
+followed = get_all_followed_clubs()
+def enqRecentPost()                 # Get most recent post not included
+    query most recent post
+        if not in queue:
+            queue.append(post)
+        else:
+            next post
+def initQueue():                    # Create a queue of 10 posts (3 to be delivered, others staged)
+    for 10:
+        enqRecentPost()
+def populate():                     # Deliver 3 most recent, stage 3 more
+    out = queue()
+    for 3:
+        out.append(getNext())
+    return out
+def getNext():
+    enqRecentPost() older than posts[-1]
+    return posts.popleft()
+"""
+
+
+class AbstractFeed:         # Opting for objects since feeds need some persistent memory (know what's already in the feed)
+    index = None            # "index" is the last item(id) in the feed, if another is needed this is used for finding the next via query
+    def __init__(self, db: Session, current_user = models.Users):
+        self.db = db
+        self.current_user = current_user
+        self.in_feed = set()        # IDs of items already delivered
+    
+    def mark_delivered(self, item_id):
+        self.in_feed.add(item_id)
+
+    def get_newest(self):
+        raise NotImplementedError
+    
+    def get_feed(self, n=10):
+        items = []
+        for _ in range(n):
+            item = self.get_next()
+            if item is None:
+                break
+            items.append(item)
+            self.mark_delivered(item['id'])
+        return items
+    
+class DiscoveryFeed(AbstractFeed):
+    def __init__(self):
+        super().__init__()
+    def get_newest(self):
+        pass
+class PostFeed(AbstractFeed):
+    def __init__(self):
+        super().__init__()
+    def get_newest(self):
+        pass
+class EventFeed(AbstractFeed):
+    def __init__(self):
+        super().__init__()
+    def get_newest(self):
+        pass
+    
+# ---------- RECOMMENDATION CORE LOGIC ----------
+
+
+def sort_recommended(db:Session, current_user: models.Users, **kwargs):
+    '''
+    sort_recommended provides an abstract means of calling various recommendation algorithms
+    
+    Args:
+        db(Session): The active db 
+        current_user(models.Users): The current active user
+        
+    kwargs: dictionary for named optional arguments, allows for flexibly adding more arguments later if needed
+        {kwargs['mode']}(int): Selects the recommendation algo to use, defaults to 1 (simple_recommend())
+    
+    '''
+    algos = 1       # The number of recommendation algorithms available, increase if another is added
+    mode = 1
+    if "mode" in kwargs:
+        if int(kwargs['mode']) in range(1, algos+1):
+            mode = int(kwargs['mode'])
+
+    def simple_recommend():
+        clubs = get_recommended_clubs(db, current_user.userid)
+        user_tags = set(tag.tagid for tag in get_user_tags(db, current_user.userid))
+        # Sort clubs in place by the number of shared tags (descending)
+        clubs.sort(
+            key=lambda club: len(
+                user_tags & set(tag.tagid for tag in get_club_tags(db, club.clubid))
+            ),
+            reverse=True,
+        )
+        return clubs
+    if mode == 1:                   # There are better ways to do this but this works for now
+        return simple_recommend()
+    else:
+        return
+
