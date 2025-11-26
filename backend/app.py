@@ -6,8 +6,11 @@ import models
 
 # Import the Logic functions
 from queries import create_user, check_existing_user
-from core_logic import signup_user_core, login_user_core,create_event_core, list_events_for_club_core, list_all_events_core, create_post_core, list_posts_for_club_core
-
+from core_logic import (
+    signup_user_core, login_user_core,create_event_core, list_events_for_club_core, list_all_events_core, 
+    create_post_core, list_posts_for_club_core, update_event_core, delete_event_core, update_post_core,
+    delete_post_core
+)
 # Import DB setup
 from database import get_db
 from auth import create_access_token, get_current_user
