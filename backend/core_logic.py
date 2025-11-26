@@ -437,3 +437,11 @@ def delete_post_core(
         "status": "success",
         "message": "Post deleted successfully",
     }
+
+# ---------- FEED POPULATION CORE LOGIC ----------
+
+def get_posts_from_followed():
+    pass
+
+def get_events_from_followed():
+    pass
