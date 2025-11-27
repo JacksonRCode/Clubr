@@ -430,71 +430,55 @@ def delete_post_core(
 # ---------- FEED POPULATION CORE LOGIC ----------
 
 
+# Stateless feed functions using exclude_ids
 
-"""
-class Feed:
+def get_discovery_feed(db: Session, current_user: models.Users, exclude_ids=None, n=10):
+    if exclude_ids is None:
+        exclude_ids = set()
+    clubs = get_recommended_clubs(db, current_user.userid)
+    # Filter out clubs already in the feed
+    filtered = [club for club in clubs if str(club.clubid) not in exclude_ids]
+    # Optionally sort or limit
+    return filtered[:n]
 
-posts = queue()
-followed = get_all_followed_clubs()
-def enqRecentPost()                 # Get most recent post not included
-    query most recent post
-        if not in queue:
-            queue.append(post)
-        else:
-            next post
-def initQueue():                    # Create a queue of 10 posts (3 to be delivered, others staged)
-    for 10:
-        enqRecentPost()
-def populate():                     # Deliver 3 most recent, stage 3 more
-    out = queue()
-    for 3:
-        out.append(getNext())
-    return out
-def getNext():
-    enqRecentPost() older than posts[-1]
-    return posts.popleft()
-"""
+def get_discovery_event_feed(db: Session, current_user: models.Users, exclude_ids=None, n=10):
+    if exclude_ids is None:
+        exclude_ids = set()
+    # Get recommended clubs
+    clubs = get_recommended_clubs(db, current_user.userid)
+    club_ids = [club.clubid for club in clubs]
+    # Get events for those clubs
+    events = db.query(Events).filter(Events.clubid.in_(club_ids)).order_by(Events.startdatetime.asc()).all()
+    filtered = [e for e in events if str(e.eventid) not in exclude_ids]
+    # Serialize
+    club_map = {c.clubid: c for c in clubs}
+    return [_event_to_dict(e, club_map.get(e.clubid)) for e in filtered[:n]]
 
+def get_post_feed(db: Session, current_user: models.Users, exclude_ids=None, n=10):
+    if exclude_ids is None:
+        exclude_ids = set()
+    followed_clubs = get_all_followed_clubs(db, current_user.userid)
+    posts = []
+    for club in followed_clubs:
+        club_posts = db.query(Posts).filter(Posts.clubid == club.clubid).order_by(Posts.timestamp.desc()).all()
+        posts.extend([_post_to_dict(post, club) for post in club_posts])
+    # Filter out posts already in the feed
+    filtered = [p for p in posts if str(p['id']) not in exclude_ids]
+    # Sort by createdAt descending (ISO string sort is safe)
+    filtered.sort(key=lambda p: p["createdAt"], reverse=True)
+    return filtered[:n]
 
-class AbstractFeed:         # Opting for objects since feeds need some persistent memory (know what's already in the feed)
-    index = None            # "index" is the last item(id) in the feed, if another is needed this is used for finding the next via query
-    def __init__(self, db: Session, current_user = models.Users):
-        self.db = db
-        self.current_user = current_user
-        self.in_feed = set()        # IDs of items already delivered
-    
-    def mark_delivered(self, item_id):
-        self.in_feed.add(item_id)
-
-    def get_newest(self):
-        raise NotImplementedError
-    
-    def get_feed(self, n=10):
-        items = []
-        for _ in range(n):
-            item = self.get_next()
-            if item is None:
-                break
-            items.append(item)
-            self.mark_delivered(item['id'])
-        return items
-    
-class DiscoveryFeed(AbstractFeed):
-    def __init__(self):
-        super().__init__()
-    def get_newest(self):
-        pass
-class PostFeed(AbstractFeed):
-    def __init__(self):
-        super().__init__()
-    def get_newest(self):
-        pass
-class EventFeed(AbstractFeed):
-    def __init__(self):
-        super().__init__()
-    def get_newest(self):
-        pass
-    
+def get_event_feed(db: Session, current_user: models.Users, exclude_ids=None, n=10):
+    if exclude_ids is None:
+        exclude_ids = set()
+    followed_clubs = get_all_followed_clubs(db, current_user.userid)
+    club_ids = [club.clubid for club in followed_clubs]
+    events = db.query(Events).filter(Events.clubid.in_(club_ids)).order_by(Events.startdatetime.asc()).all()
+    filtered = [e for e in events if str(e.eventid) not in exclude_ids]
+    club_map = {c.clubid: c for c in followed_clubs}
+    return [_event_to_dict(e, club_map.get(e.clubid)) for e in filtered[:n]]
+     
+     
 # ---------- RECOMMENDATION CORE LOGIC ----------
 
 
@@ -507,7 +491,7 @@ def sort_recommended(db:Session, current_user: models.Users, **kwargs):
         current_user(models.Users): The current active user
         
     kwargs: dictionary for named optional arguments, allows for flexibly adding more arguments later if needed
-        {kwargs['mode']}(int): Selects the recommendation algo to use, defaults to 1 (simple_recommend())
+        kwargs['mode'](int): Selects the recommendation algo to use, defaults to 1 (simple_recommend())
     
     '''
     algos = 1       # The number of recommendation algorithms available, increase if another is added
