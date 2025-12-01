@@ -435,7 +435,7 @@ def delete_post_core(
 def get_discovery_feed(db: Session, current_user: models.Users, exclude_ids=None, n=10):
     if exclude_ids is None:
         exclude_ids = set()
-    clubs = get_recommended_clubs(db, current_user.userid)
+    clubs = get_sorted_recommended(db, current_user)
     # Filter out clubs already in the feed
     filtered = [club for club in clubs if str(club.clubid) not in exclude_ids]
     # Optionally sort or limit
@@ -445,7 +445,7 @@ def get_discovery_event_feed(db: Session, current_user: models.Users, exclude_id
     if exclude_ids is None:
         exclude_ids = set()
     # Get recommended clubs
-    clubs = get_recommended_clubs(db, current_user.userid)
+    clubs = get_sorted_recommended(db, current_user)
     club_ids = [club.clubid for club in clubs]
     # Get events for those clubs
     events = db.query(Events).filter(Events.clubid.in_(club_ids)).order_by(Events.startdatetime.asc()).all()
@@ -482,7 +482,7 @@ def get_event_feed(db: Session, current_user: models.Users, exclude_ids=None, n=
 # ---------- RECOMMENDATION CORE LOGIC ----------
 
 
-def sort_recommended(db:Session, current_user: models.Users, **kwargs):
+def get_sorted_recommended(db:Session, current_user: models.Users, **kwargs):
     '''
     sort_recommended provides an abstract means of calling various recommendation algorithms
     
