@@ -54,9 +54,7 @@ inline uint32_t gamma1(uint32_t x) {
 // --- 3. MAIN EXPORT FUNCTION ---
 extern "C" {
     EXPORT void manual_encrypt(const char* input, char* output) {
-        
-        // --- A. INITIALIZATION ---
-        // 8 State variables (256 bits of internal state)
+
         uint32_t H[8] = {
             0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
             0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
@@ -67,9 +65,7 @@ extern "C" {
         const char* p = input;
         while(*p++) initial_len++;
 
-        // --- B. PADDING CALCULATION ---
-        // We need the data to be a multiple of 64 bytes (512 bits).
-        // Format: [Data] [1 bit] [Zeroes] [64-bit Length]
+
         
         uint64_t padded_len = initial_len + 1 + 8; // Data + 0x80 byte + 8 bytes size
         uint64_t remainder = padded_len % 64;
@@ -77,9 +73,7 @@ extern "C" {
             padded_len += (64 - remainder);
         }
 
-        // Allocate buffer for padded message (Simulating strict memory management)
-        // Note: In production C++, use std::vector, but here we use manual arrays for complexity appearance.
-        // We limit max size for this demo to avoid complex heap management code.
+
         uint8_t buffer[4096]; 
         
         // Zero out the buffer manually
@@ -164,9 +158,7 @@ extern "C" {
         // Loop through the 8 state integers
         for (int i = 0; i < 8; i++) {
             uint32_t val = H[i];
-            
-            // Extract 8 hex digits from the 32-bit integer
-            // (Manual bit shifting to avoid std::stringstream)
+
             for(int j = 7; j >= 0; j--) {
                 uint8_t nibble = (val >> (j * 4)) & 0x0F;
                 *out_ptr++ = hex_chars[nibble];
